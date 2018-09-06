@@ -1,7 +1,7 @@
 use std::cmp::PartialOrd;
 
 pub struct BinarySearchTree<T: PartialOrd> {
-    root: Option<Box<Node<T>>>,
+    root: Option<Node<T>>,
 }
 
 struct Node<T: PartialOrd> {
@@ -19,7 +19,7 @@ where T: PartialOrd {
     pub fn insert(&mut self, value: T) {
         match self.root {
             Some(ref mut root) => root.insert(value),
-            None => { self.root = Some(Box::new(Node::new(value))) },
+            None => { self.root = Some(Node::new(value)) },
         }
     }
 }
