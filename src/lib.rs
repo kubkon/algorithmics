@@ -1,2 +1,1 @@
-pub mod bst;
-
+pub mod datastructs;
