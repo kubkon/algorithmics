@@ -1,7 +1,7 @@
 use std::cmp::PartialOrd;
 
 pub struct BinarySearchTree<T: PartialOrd> {
-    root: Option<Node<T>>,
+    root: Option<Box<Node<T>>>,
 }
 
 struct Node<T: PartialOrd> {
@@ -11,43 +11,60 @@ struct Node<T: PartialOrd> {
 }
 
 impl<T> BinarySearchTree<T>
-where T: PartialOrd {
+where
+    T: PartialOrd,
+{
     pub fn new() -> BinarySearchTree<T> {
-       BinarySearchTree { root: None }
+        BinarySearchTree { root: None }
     }
 
     pub fn insert(&mut self, value: T) {
-        match self.root {
-            Some(ref mut root) => root.insert(value),
-            None => { self.root = Some(Node::new(value)) },
+        if self.root.is_none() {
+            return self.root = Some(Box::new(Node::new(value)));
+        }
+
+        // traverse the tree, and insert
+        let mut node = &mut self.root as *mut Option<Box<Node<T>>>;
+
+        unsafe {
+            while let Some(ref mut unwrapped) = *node {
+                if unwrapped.value == value {
+                    // duplicate found, so just swap the values
+                    unwrapped.value = value;
+                    return;
+                }
+
+                if value < unwrapped.value {
+                    // go left
+                    if unwrapped.left.is_none() {
+                        unwrapped.left = Some(Box::new(Node::new(value)));
+                        return;
+                    }
+
+                    node = &mut unwrapped.left;
+                } else {
+                    // go right
+                    if unwrapped.right.is_none() {
+                        unwrapped.right = Some(Box::new(Node::new(value)));
+                        return;
+                    }
+
+                    node = &mut unwrapped.right;
+                }
+            }
         }
     }
 }
 
 impl<T> Node<T>
-where T: PartialOrd {
+where
+    T: PartialOrd,
+{
     pub fn new(value: T) -> Node<T> {
-        Node { value: value, left: None, right: None }
-    }
-
-    pub fn insert(&mut self, value: T) {
-        if value == self.value {
-            panic!("Value already exists in the tree!")
-        }
-
-        if value <= self.value {
-            // go left
-            match self.left {
-                Some(ref mut left) => left.insert(value),
-                None => { self.left = Some(Box::new(Node::new(value))) },
-            }
-        }
-        else {
-            // go right
-            match self.right {
-                Some(ref mut right) => right.insert(value),
-                None => { self.right = Some(Box::new(Node::new(value))) },
-            }
+        Node {
+            value: value,
+            left: None,
+            right: None,
         }
     }
 }
@@ -69,7 +86,7 @@ mod tests {
         tree.insert(5);
 
         assert!(tree.root.is_some());
-        
+
         if let Some(ref root) = tree.root {
             assert_eq!(root.value, 5);
             assert!(root.left.is_none());
@@ -85,7 +102,7 @@ mod tests {
         tree.insert(6);
 
         assert!(tree.root.is_some());
-        
+
         if let Some(ref root) = tree.root {
             assert_eq!(root.value, 5);
 
@@ -108,11 +125,26 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn insert_duplicate() {
         let mut tree = BinarySearchTree::<i32>::new();
         tree.insert(4);
-        tree.insert(3);
+
+        assert!(tree.root.is_some());
+
+        if let Some(ref root) = tree.root {
+            assert_eq!(root.value, 4);
+            assert!(root.left.is_none());
+            assert!(root.right.is_none());
+        }
+
         tree.insert(4);
+
+        assert!(tree.root.is_some());
+
+        if let Some(ref root) = tree.root {
+            assert_eq!(root.value, 4);
+            assert!(root.left.is_none());
+            assert!(root.right.is_none());
+        }
     }
 }
