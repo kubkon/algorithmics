@@ -1,10 +1,10 @@
-use std::cmp::PartialOrd;
+use std::cmp::Ord;
 
-pub struct BinarySearchTree<T: PartialOrd> {
+pub struct BinarySearchTree<T: Ord> {
     root: Option<Box<Node<T>>>,
 }
 
-struct Node<T: PartialOrd> {
+struct Node<T: Ord> {
     value: T,
     left: Option<Box<Node<T>>>,
     right: Option<Box<Node<T>>>,
@@ -12,7 +12,7 @@ struct Node<T: PartialOrd> {
 
 impl<T> BinarySearchTree<T>
 where
-    T: PartialOrd,
+    T: Ord,
 {
     pub fn new() -> BinarySearchTree<T> {
         BinarySearchTree { root: None }
@@ -80,7 +80,7 @@ where
 
 impl<T> Node<T>
 where
-    T: PartialOrd,
+    T: Ord,
 {
     pub fn new(value: T) -> Node<T> {
         Node {
@@ -97,14 +97,14 @@ mod tests {
 
     #[test]
     fn empty() {
-        let tree = BinarySearchTree::<i32>::new();
+        let tree: BinarySearchTree<i32> = BinarySearchTree::new();
 
         assert!(tree.root.is_none());
     }
 
     #[test]
     fn only_root_node() {
-        let mut tree = BinarySearchTree::<i32>::new();
+        let mut tree: BinarySearchTree<i32> = BinarySearchTree::new();
         tree.insert(5);
 
         assert!(tree.root.is_some());
@@ -118,7 +118,7 @@ mod tests {
 
     #[test]
     fn insert() {
-        let mut tree = BinarySearchTree::<i32>::new();
+        let mut tree: BinarySearchTree<i32> = BinarySearchTree::new();
         tree.insert(5);
         tree.insert(3);
         tree.insert(6);
@@ -162,9 +162,17 @@ mod tests {
         }
     }
 
+    impl Ord for Test {
+        fn cmp(&self, other: &Test) -> Ordering {
+            self.0.cmp(&other.0)
+        }
+    }
+
+    impl Eq for Test {}
+
     #[test]
     fn insert_duplicate() {
-        let mut tree = BinarySearchTree::<Test>::new();
+        let mut tree: BinarySearchTree<Test> = BinarySearchTree::new();
         tree.insert(Test(4, 0));
 
         {
@@ -196,7 +204,7 @@ mod tests {
 
     #[test]
     fn find() {
-        let mut tree = BinarySearchTree::<i32>::new();
+        let mut tree: BinarySearchTree<i32> = BinarySearchTree::new();
         tree.insert(3);
         tree.insert(2);
         tree.insert(1);
