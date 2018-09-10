@@ -18,41 +18,27 @@ where
         BinarySearchTree { root: None }
     }
 
-    pub fn insert(&mut self, value: T) {
-        if self.root.is_none() {
-            return self.root = Some(Box::new(Node::new(value)));
-        }
-
-        // traverse the tree, and insert
+    pub fn insert(&mut self, value: T) -> bool {
         let mut node = &mut self.root as *mut Option<Box<Node<T>>>;
 
         unsafe {
             while let Some(ref mut unwrapped) = *node {
                 if unwrapped.value == value {
-                    // duplicate found, so just swap the values
                     unwrapped.value = value;
-                    return;
+                    return true;
                 }
 
                 if value < unwrapped.value {
-                    // go left
-                    if unwrapped.left.is_none() {
-                        unwrapped.left = Some(Box::new(Node::new(value)));
-                        return;
-                    }
-
                     node = &mut unwrapped.left;
                 } else {
-                    // go right
-                    if unwrapped.right.is_none() {
-                        unwrapped.right = Some(Box::new(Node::new(value)));
-                        return;
-                    }
-
                     node = &mut unwrapped.right;
                 }
             }
+
+            *node = Some(Box::new(Node::new(value)));
         }
+
+        false
     }
 
     pub fn find(&self, value: &T) -> Option<&T> {
