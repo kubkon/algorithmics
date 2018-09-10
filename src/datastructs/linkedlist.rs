@@ -16,14 +16,11 @@ impl<T> LinkedList<T> {
         let mut node = &mut self.front as *mut Option<Box<Node<T>>>;
 
         unsafe {
-            loop {
-                match *node {
-                    Some(ref mut n) => node = &mut n.next,
-                    None => {
-                        return *node = Some(Box::new(Node::new(item)));
-                    }
-                }
+            while let Some(ref mut n) = *node {
+                node = &mut n.next;
             }
+
+            *node = Some(Box::new(Node::new(item)))
         }
     }
 
@@ -50,7 +47,10 @@ impl<'a, T: 'a> Iterator for LinkedListIter<'a, T> {
 
     fn next(&mut self) -> Option<&'a T> {
         match self.node {
-            Some(ref n) => Some(&n.item),
+            Some(ref n) => {
+                self.node = &n.next;
+                Some(&n.item)
+            }
             None => None,
         }
     }
@@ -73,5 +73,10 @@ mod tests {
         list.push(3);
         list.push(5);
         list.push(3);
+
+        let mut iter = list.iter();
+        assert_eq!(iter.next(), Some(&3));
+        assert_eq!(iter.next(), Some(&5));
+        assert_eq!(iter.next(), Some(&3));
     }
 }
