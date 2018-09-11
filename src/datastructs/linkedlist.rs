@@ -12,7 +12,7 @@ impl<T> LinkedList<T> {
         LinkedList { front: None }
     }
 
-    pub fn push(&mut self, item: T) {
+    pub fn push_back(&mut self, item: T) {
         let mut node = &mut self.front as *mut Option<Box<Node<T>>>;
 
         unsafe {
@@ -22,6 +22,15 @@ impl<T> LinkedList<T> {
 
             *node = Some(Box::new(Node::new(item)))
         }
+    }
+
+    pub fn pop_front(&mut self) -> Option<T> {
+        let front = self.front.take();
+        if let Some(mut v) = front {
+            self.front = v.next.take();
+            return Some(v.item);
+        }
+        None
     }
 
     pub fn iter(&self) -> LinkedListIter<T> {
@@ -68,15 +77,30 @@ mod tests {
     }
 
     #[test]
-    fn push() {
+    fn push_back() {
         let mut list: LinkedList<i32> = LinkedList::new();
-        list.push(3);
-        list.push(5);
-        list.push(3);
+        list.push_back(3);
+        list.push_back(5);
+        list.push_back(3);
 
         let mut iter = list.iter();
         assert_eq!(iter.next(), Some(&3));
         assert_eq!(iter.next(), Some(&5));
+        assert_eq!(iter.next(), Some(&3));
+    }
+
+    #[test]
+    fn pop_front() {
+        let mut list: LinkedList<i32> = LinkedList::new();
+        list.push_back(1);
+        list.push_back(2);
+        list.push_back(3);
+
+        let v = list.pop_front();
+        assert_eq!(v, Some(1));
+
+        let mut iter = list.iter();
+        assert_eq!(iter.next(), Some(&2));
         assert_eq!(iter.next(), Some(&3));
     }
 }
