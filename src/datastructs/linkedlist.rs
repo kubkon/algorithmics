@@ -26,11 +26,14 @@ impl<T> LinkedList<T> {
 
     pub fn pop_front(&mut self) -> Option<T> {
         let front = self.front.take();
-        if let Some(mut v) = front {
-            self.front = v.next.take();
-            return Some(v.item);
+
+        match front {
+            Some(mut front) => {
+                self.front = front.next.take();
+                Some(front.item)
+            }
+            None => None,
         }
-        None
     }
 
     pub fn iter(&self) -> LinkedListIter<T> {
