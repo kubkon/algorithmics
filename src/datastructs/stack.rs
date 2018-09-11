@@ -69,6 +69,9 @@ mod tests {
         let next = &next.as_ref().unwrap().next;
         assert!(next.is_some());
         assert_eq!(next.as_ref().unwrap().item, 1);
+
+        let next = &next.as_ref().unwrap().next;
+        assert!(next.is_none());
     }
 
     #[test]
