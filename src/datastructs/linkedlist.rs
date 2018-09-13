@@ -1,6 +1,6 @@
 pub struct LinkedList<T> {
     front: Option<Box<Node<T>>>,
-    size: usize,
+    len: usize,
 }
 
 struct Node<T> {
@@ -12,8 +12,17 @@ impl<T> LinkedList<T> {
     pub fn new() -> Self {
         LinkedList {
             front: None,
-            size: 0,
+            len: 0,
         }
+    }
+
+    pub fn push_front(&mut self, item: T) {
+        let front = self.front.take();
+        let mut node = Node::new(item);
+        node.next = front;
+
+        self.front = Some(Box::new(node));
+        self.len += 1
     }
 
     pub fn push_back(&mut self, item: T) {
@@ -27,7 +36,7 @@ impl<T> LinkedList<T> {
             *node = Some(Box::new(Node::new(item)));
         }
 
-        self.size += 1
+        self.len += 1
     }
 
     pub fn pop_front(&mut self) -> Option<T> {
@@ -36,15 +45,36 @@ impl<T> LinkedList<T> {
         match front {
             Some(mut front) => {
                 self.front = front.next.take();
-                self.size -= 1;
+                self.len -= 1;
                 Some(front.item)
             }
             None => None,
         }
     }
 
-    pub fn size(&self) -> usize {
-        self.size
+    pub fn pop_back(&mut self) -> Option<T> {
+        let mut node = &mut self.front as *mut Option<Box<Node<T>>>;
+
+        unsafe {
+            while let Some(ref mut n) = *node {
+                if n.next.is_none() {
+                    break;
+                }
+                node = &mut n.next;
+            }
+
+            match (*node).take() {
+                Some(n) => {
+                    self.len -= 1;
+                    Some(n.item)
+                }
+                None => None,
+            }
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.len
     }
 
     pub fn iter(&self) -> LinkedListIter<T> {
@@ -91,6 +121,19 @@ mod tests {
     }
 
     #[test]
+    fn push_front() {
+        let mut list: LinkedList<i32> = LinkedList::new();
+        list.push_front(1);
+        list.push_front(2);
+        list.push_front(3);
+
+        let mut iter = list.iter();
+        assert_eq!(iter.next(), Some(&3));
+        assert_eq!(iter.next(), Some(&2));
+        assert_eq!(iter.next(), Some(&1));
+    }
+
+    #[test]
     fn push_back() {
         let mut list: LinkedList<i32> = LinkedList::new();
         list.push_back(3);
@@ -119,23 +162,43 @@ mod tests {
     }
 
     #[test]
-    fn size() {
+    fn pop_back() {
         let mut list: LinkedList<i32> = LinkedList::new();
-        
+        list.push_back(1);
+        list.push_back(2);
+        list.push_back(3);
+
+        let v = list.pop_back();
+        assert_eq!(v, Some(3));
+        assert_eq!(list.len(), 2);
+
+        let v = list.pop_back();
+        assert_eq!(v, Some(2));
+        assert_eq!(list.len(), 1);
+
+        let v = list.pop_back();
+        assert_eq!(v, Some(1));
+        assert_eq!(list.len(), 0);
+    }
+
+    #[test]
+    fn len() {
+        let mut list: LinkedList<i32> = LinkedList::new();
+
         assert!(list.front.is_none());
-        assert_eq!(list.size(), 0);
+        assert_eq!(list.len(), 0);
 
         list.push_back(3);
         assert!(list.front.is_some());
-        assert_eq!(list.size(), 1);
+        assert_eq!(list.len(), 1);
 
         list.push_back(2);
-        assert_eq!(list.size(), 2);
+        assert_eq!(list.len(), 2);
 
         list.pop_front();
-        assert_eq!(list.size(), 1);
+        assert_eq!(list.len(), 1);
 
         list.pop_front();
-        assert_eq!(list.size(), 0);
+        assert_eq!(list.len(), 0);
     }
 }
