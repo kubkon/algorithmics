@@ -179,6 +179,8 @@ mod tests {
         let v = list.pop_back();
         assert_eq!(v, Some(1));
         assert_eq!(list.len(), 0);
+
+        assert_eq!(list.pop_back(), None);
     }
 
     #[test]
